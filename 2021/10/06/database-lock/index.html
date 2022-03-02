@@ -306,7 +306,7 @@
 <p>要讨论锁到底锁的是什么，大致要分以下几种情况来讨论：</p>
 <ul>
 <li>主键(唯一索引)，条件命中</li>
-<li>主键(唯一索引)，条件不命中 / 条件模糊</li>
+<li>主键(唯一索引)，条件不命中 &#x2F; 条件模糊</li>
 <li>普通索引，条件命中</li>
 <li>普通字段，条件命中</li>
 </ul>
@@ -350,18 +350,18 @@
 </ul>
 <p><img src="/../images/%E6%B5%85%E8%B0%88%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E9%94%81/1633601439484.png" srcset="/img/loading.gif" lazyload alt="1633601439484"></p>
 <p><img src="/../images/%E6%B5%85%E8%B0%88%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E9%94%81/1633601727061.png" srcset="/img/loading.gif" lazyload alt="1633601727061"></p>
-<p>​    id = 25,不是查出来的数据，可以更新d字段。</p>
+<p>​    id &#x3D; 25,不是查出来的数据，可以更新d字段。</p>
 <p>​    <strong>个人认为，行锁是加在主键上的，这样可以避免 通过别的索引，修改已经查出来的行</strong></p>
 <ul>
 <li>在对应的索引树上，加gap lock。不影响其他索引树</li>
 </ul>
 <p><img src="/../images/%E6%B5%85%E8%B0%88%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E9%94%81/1633602359760.png" srcset="/img/loading.gif" lazyload alt="1633602359760"></p>
 <p>(1)对于<code>update t set d = 5 where id = 10</code></p>
-<p>​    因为，行锁只加在查询出的(id = 0 和 id = 5)两条数据里。gap lock是加载字段c的索引上。当这条记录更新完成，并不会更新<strong>字段c的索引树。</strong>因此能够运行</p>
+<p>​    因为，行锁只加在查询出的(id &#x3D; 0 和 id &#x3D; 5)两条数据里。gap lock是加载字段c的索引上。当这条记录更新完成，并不会更新<strong>字段c的索引树。</strong>因此能够运行</p>
 <p>(2)对于<code>update t set c = 4 where id = 0</code></p>
 <p>​    显然是因为行锁，这语句被阻塞了。</p>
 <p>(3)对于<code>update t set c = 5 where id = 10</code></p>
-<p>​    id = 10不是查出来的数据，但是对行记录更新完成后，因为操作的是索引字段c，因此需要对字段c的索引树进行修改。修改索引树的过程遇到gap lock被阻塞了</p>
+<p>​    id &#x3D; 10不是查出来的数据，但是对行记录更新完成后，因为操作的是索引字段c，因此需要对字段c的索引树进行修改。修改索引树的过程遇到gap lock被阻塞了</p>
 <h4 id="索引，条件不命中"><a href="#索引，条件不命中" class="headerlink" title="索引，条件不命中"></a>索引，条件不命中</h4><figure class="highlight plaintext"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><code class="hljs mysql"># session1<br>begin;<br>select * from t where c = 4 for update;<br></code></pre></td></tr></table></figure>
 
 <p><img src="/../images/%E6%B5%85%E8%B0%88%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E9%94%81/1633526953542.png" srcset="/img/loading.gif" lazyload alt="1633526953542"></p>
@@ -397,7 +397,7 @@
 <p>分析：</p>
 <ul>
 <li>已知，索引树c和索引树d是独立的。</li>
-<li>如果行锁加载索引树上，那么索引树c上对id=5的加行锁，不影响在索引树d对id=5加行锁</li>
+<li>如果行锁加载索引树上，那么索引树c上对id&#x3D;5的加行锁，不影响在索引树d对id&#x3D;5加行锁</li>
 <li>如果加载主键上，必然被阻塞。</li>
 </ul>
 <p><img src="/../images/%E6%B5%85%E8%B0%88%E6%95%B0%E6%8D%AE%E5%BA%93%E4%B8%AD%E7%9A%84%E9%94%81/1633604773965.png" srcset="/img/loading.gif" lazyload alt="1633604773965"></p>
@@ -440,7 +440,7 @@
                     
                     
                       <a href="/2021/10/05/MySQL%E7%9A%84%E9%9A%94%E7%A6%BB%E6%80%A7/">
-                        <span class="hidden-mobile">浅谈数据库的隔离性</span>
+                        <span class="hidden-mobile">数据库的隔离性</span>
                         <span class="visible-mobile">下一篇</span>
                         <i class="iconfont icon-arrowright"></i>
                       </a>

@@ -263,7 +263,7 @@
 <li>对于方案二，因为rehash是需要<strong>fork一个子进程来进行rehash，这必然在一定程度上影响CPU的性能</strong>。</li>
 </ul>
 <h3 id="缺点二"><a href="#缺点二" class="headerlink" title="缺点二"></a>缺点二</h3><p>​    范围查询不友好，这点放在B树B+树说。对范围查询友好的索引，一般来说只有这两个。</p>
-<p><strong>Q:如果采用SSD，检索/IO很快，hash索引的范围查询时间会和B+树差不多嘛？</strong></p>
+<p><strong>Q:如果采用SSD，检索&#x2F;IO很快，hash索引的范围查询时间会和B+树差不多嘛？</strong></p>
 <figure class="highlight bash"><table><tr><td class="gutter"><div class="code-wrapper"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></div></td><td class="code"><pre><code class="hljs bash">我个人觉得不会，举个查询age在18~60的范围查询。<br>首先，我们要明确一件事<span class="hljs-built_in">hash</span>函数，只能对一个key进行哈希。不能对 两个（若干个）key之间的间隙进行<span class="hljs-built_in">hash</span>，也就是说 18~60，哈希函数只能 <span class="hljs-built_in">hash</span>(18)..<span class="hljs-built_in">hash</span>(19)..<span class="hljs-built_in">hash</span>(20)....<span class="hljs-built_in">hash</span>(60)。<br>它不能直接<span class="hljs-built_in">hash</span>(18~60)。因此从这点来说，我觉得<span class="hljs-built_in">hash</span>索引即使采用SSD，它的范围查询效率还是很难让人接受的。而且我举得例子还是整形的情况，如果该字段是浮点数类型，那么就要从浮点数的最小精度开始枚举，这种开销显然十分巨大。<br></code></pre></td></tr></table></figure>
 
 
@@ -276,10 +276,9 @@
 </li>
 <li><p>锁加在链表（数组），这样加锁的话，显然不行，因为该链表上的数据不是所有的节点都符合加锁的条件的。</p>
 <p>因此，考虑以上原因，hash索引的并发性真的不够强。</p>
+<p>   所以，<strong>哈希表这种结构适用于只有等值查询的场景</strong>，比如 Memcached 及其他一些 NoSQL 引擎。 对于redis来说哈希是一个很重要的数据结构。</p>
 </li>
 </ul>
-<div class="code-wrapper"><pre><code class="hljs"> 所以，**哈希表这种结构适用于只有等值查询的场景**，比如 Memcached 及其他一些 NoSQL 引擎。 对于redis来说哈希是一个很重要的数据结构。
-</code></pre></div>
 <h2 id="有序数组索引"><a href="#有序数组索引" class="headerlink" title="有序数组索引"></a>有序数组索引</h2><p><img src="/../images/why-B-tree/1635774550939.png" srcset="/img/loading.gif" lazyload alt="1635774550939"></p>
 <p>​    有序数组很简单，就是拿数组进行存储。但是这个存储是有条件的：<strong>插入的数据必须是严格自增的</strong>。如果你插入了 1，10。那么下一条的数据只能大于10，不能插入9。</p>
 <p>​    为什么要这样？<strong>原因很简单，避免空间的浪费。</strong></p>
@@ -289,7 +288,7 @@
 <p><img src="https://static001.geekbang.org/resource/image/04/68/04fb9d24065635a6a637c25ba9ddde68.png" srcset="/img/loading.gif" lazyload alt="img"></p>
 <p>​    这种数据结构的特点，不管是对于查找还是插入都十分友好。并且不像<strong>有序数组索引那样，要求索引字段必须是严格自增的。</strong></p>
 <p>​    理论上，二叉树的效率是很高的，但是为什么实际上数据库的存储都不使用二叉树？<strong>这个问题的答案是因为，一般来说索引很大，不可能只存在于内存上，一定要写入磁盘里面。</strong></p>
-<p>​    我们可以假设一个场景，100万条记录的表，它的二叉树高大概在20左右。我们知道在磁盘中，以块来存储的。那么查询一条数据，最坏的情况就是<strong>20 x 10ms = 200 ms。</strong>这个查询速度难以让人接受。</p>
+<p>​    我们可以假设一个场景，100万条记录的表，它的二叉树高大概在20左右。我们知道在磁盘中，以块来存储的。那么查询一条数据，最坏的情况就是<strong>20 x 10ms &#x3D; 200 ms。</strong>这个查询速度难以让人接受。</p>
 <h2 id="为什么使用N叉树"><a href="#为什么使用N叉树" class="headerlink" title="为什么使用N叉树"></a>为什么使用N叉树</h2><p>​    为了让一个查询尽量地少读磁盘，就必须让查询的过程中尽量少访问数据块。为了减少磁盘的IO，不妨考虑以下N叉树。</p>
 <p>​    为什么要用N叉树，我们看N叉树的节点，一个节点存储多条数据，而且每个节点内的数据在逻辑上都是有序的。而数据块，也是存储多个数据。<strong>那么，我们可以不可以把数据块抽象成N叉树的节点呢？</strong>答案是，这种做法完全可行。</p>
 <figure class="highlight verilog"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><code class="hljs verilog">以InnoDB为例，磁盘和内存交互的单位大小是<span class="hljs-number">16</span>KB。假设，只有一个索引字段（bigint）的情况下，我们看看可以存储多少个记录，而且树高是多少。<br>索引字段bigint 占<span class="hljs-number">8</span><span class="hljs-keyword">byte</span> 和 <span class="hljs-number">6</span>Byte指向下一页的指针 （为什么是<span class="hljs-number">48</span><span class="hljs-keyword">bit</span>，因为目前<span class="hljs-number">64</span>位的硬件实际上只能支持<span class="hljs-number">256</span>TB，因此只需要<span class="hljs-number">48</span><span class="hljs-keyword">bit</span>来寻址）<br>所以 N = <span class="hljs-number">16</span>KB / <span class="hljs-number">14</span>B ≈ <span class="hljs-number">1200</span>。因此每页能存放<span class="hljs-number">1200</span>条记录（该记录不是真的记录，只是用来方便查找的）。<br>一般来说，B+树树高为<span class="hljs-number">4</span>,那么最多存储 <span class="hljs-number">1200</span>^<span class="hljs-number">3</span> = <span class="hljs-number">17</span>亿条数据。也就是说，从<span class="hljs-number">17</span>亿数据中，只需要三次查盘就可以了。<br></code></pre></td></tr></table></figure>

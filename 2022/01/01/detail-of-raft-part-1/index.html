@@ -16,12 +16,12 @@
   <meta name="author" content="albertHuang">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言&amp;#8195;&amp;#8195;最近读了raft共识算法的论文，对其有更深且进一步的理解。raft是一种用来管理复制日志的一致性共识算法。它的作用跟Paxos相同，并且效率差距也不大。但是，raft最大的特点就是容易理解。这才得以让raft在工程实践里面，大规模应用。 &amp;#8195;&amp;#8195;按照我个人的理解，让一个集群里面的服务器保持一致性或者说达成某种共识，实质上就是让log&#x2F;comman">
+    <meta name="description" content="前言&amp;#8195;&amp;#8195;最近读了raft共识算法的论文，对其有更深且进一步的理解。raft是一种用来管理复制日志的一致性共识算法。它的作用跟Paxos相同，并且效率差距也不大。但是，raft最大的特点就是容易理解。这才得以让raft在工程实践里面，大规模应用。 &amp;#8195;&amp;#8195;按照我个人的理解，让一个集群里面的服务器保持一致性或者说达成某种共识，">
 <meta property="og:type" content="article">
 <meta property="og:title" content="读论文《In Search of an Understandable Consensus Algorithm》 --- raft (1)">
 <meta property="og:url" content="http://example.com/2022/01/01/detail-of-raft-part-1/index.html">
 <meta property="og:site_name" content="cb&#39;s blog">
-<meta property="og:description" content="前言&amp;#8195;&amp;#8195;最近读了raft共识算法的论文，对其有更深且进一步的理解。raft是一种用来管理复制日志的一致性共识算法。它的作用跟Paxos相同，并且效率差距也不大。但是，raft最大的特点就是容易理解。这才得以让raft在工程实践里面，大规模应用。 &amp;#8195;&amp;#8195;按照我个人的理解，让一个集群里面的服务器保持一致性或者说达成某种共识，实质上就是让log&#x2F;comman">
+<meta property="og:description" content="前言&amp;#8195;&amp;#8195;最近读了raft共识算法的论文，对其有更深且进一步的理解。raft是一种用来管理复制日志的一致性共识算法。它的作用跟Paxos相同，并且效率差距也不大。但是，raft最大的特点就是容易理解。这才得以让raft在工程实践里面，大规模应用。 &amp;#8195;&amp;#8195;按照我个人的理解，让一个集群里面的服务器保持一致性或者说达成某种共识，">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/detail-of-raft/image-20220103150743291.png">
 <meta property="og:image" content="http://example.com/images/detail-of-raft/image-20220103151942895.png">
@@ -216,7 +216,7 @@
   
     <span class="post-meta mr-2">
       <i class="iconfont icon-chart"></i>
-      4.9k 字
+      5k 字
     </span>
   
 
@@ -225,7 +225,7 @@
       <i class="iconfont icon-clock-fill"></i>
       
       
-      41 分钟
+      43 分钟
     </span>
   
 
@@ -257,16 +257,16 @@
             <h1 style="display: none">读论文《In Search of an Understandable Consensus Algorithm》 --- raft (1)</h1>
             
             <div class="markdown-body">
-              <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&#8195;&#8195;最近读了<code>raft</code>共识算法的论文，对其有更深且进一步的理解。<code>raft</code>是一种用来管理复制日志的一致性共识算法。它的作用跟<code>Paxos</code>相同，并且效率差距也不大。但是，<code>raft</code>最大的特点就是容易理解。这才得以让<code>raft</code>在工程实践里面，大规模应用。</p>
-<p>&#8195;&#8195;按照我个人的理解，让一个集群里面的服务器保持一致性或者说达成某种共识，<strong>实质上就是让<code>log/command</code>在所有服务器上都按照同一种顺序被执行。</strong><code>raft</code>为了简化这个设计，参考了<code>gfs</code>选出了一个<code>master</code>，让其他所有服务器都服从<code>master</code>的执行顺序。</p>
-<p>&#8195;&#8195;为了减少复杂性，<code>raft</code>把一致性共识的关键<code>leader选举</code>,<code>日志复制</code>,<code>安全性</code>,<code>集群配置更新</code>，这几部分分割开来。下面的篇幅我们来讨论一下算法的种种细节</p>
+              <h2 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h2><p>&amp;#8195;&amp;#8195;最近读了<code>raft</code>共识算法的论文，对其有更深且进一步的理解。<code>raft</code>是一种用来管理复制日志的一致性共识算法。它的作用跟<code>Paxos</code>相同，并且效率差距也不大。但是，<code>raft</code>最大的特点就是容易理解。这才得以让<code>raft</code>在工程实践里面，大规模应用。</p>
+<p>&amp;#8195;&amp;#8195;按照我个人的理解，让一个集群里面的服务器保持一致性或者说达成某种共识，<strong>实质上就是让<code>log/command</code>在所有服务器上都按照同一种顺序被执行。</strong><code>raft</code>为了简化这个设计，参考了<code>gfs</code>选出了一个<code>master</code>，让其他所有服务器都服从<code>master</code>的执行顺序。</p>
+<p>&amp;#8195;&amp;#8195;为了减少复杂性，<code>raft</code>把一致性共识的关键<code>leader选举</code>,<code>日志复制</code>,<code>安全性</code>,<code>集群配置更新</code>，这几部分分割开来。下面的篇幅我们来讨论一下算法的种种细节</p>
 <span id="more"></span>
 
 
 
-<h2 id="一致性共识算法"><a href="#一致性共识算法" class="headerlink" title="一致性共识算法"></a>一致性共识算法</h2><h3 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h3><p>&#8195;&#8195;<code>raft</code>是如何实现一致性共识的？它是通过选举出一个<code>leader</code>，然后让其负责协调集群的日志复制工作。当其他的<code>follower</code>收到日志之后，便可以在合适的时机，把<code>log里面的command</code>作用到自己的状态机里面。</p>
-<p>&#8195;&#8195;上面已经提到过了，跟<code>gfs</code>一样，让一个<code>master</code>协调日志的顺序，这样做会简化很多设计（不然的话要加很多复杂的措施）。<strong>显然，在分布式的系统当中不得不考虑系统的容错性还有网络等问题，这些因素都会造成该集群中<code>leader</code>不可通信的情况。</strong>为了集群的高可用性，这时候就必须选举出一个新的<code>leader</code>。</p>
-<p>&#8195;&#8195;为了达成共识，需要遵守一些规则进行的。</p>
+<h2 id="一致性共识算法"><a href="#一致性共识算法" class="headerlink" title="一致性共识算法"></a>一致性共识算法</h2><h3 id="规则"><a href="#规则" class="headerlink" title="规则"></a>规则</h3><p>&amp;#8195;&amp;#8195;<code>raft</code>是如何实现一致性共识的？它是通过选举出一个<code>leader</code>，然后让其负责协调集群的日志复制工作。当其他的<code>follower</code>收到日志之后，便可以在合适的时机，把<code>log里面的command</code>作用到自己的状态机里面。</p>
+<p>&amp;#8195;&amp;#8195;上面已经提到过了，跟<code>gfs</code>一样，让一个<code>master</code>协调日志的顺序，这样做会简化很多设计（不然的话要加很多复杂的措施）。<strong>显然，在分布式的系统当中不得不考虑系统的容错性还有网络等问题，这些因素都会造成该集群中<code>leader</code>不可通信的情况。</strong>为了集群的高可用性，这时候就必须选举出一个新的<code>leader</code>。</p>
+<p>&amp;#8195;&amp;#8195;为了达成共识，需要遵守一些规则进行的。</p>
 <h4 id="state"><a href="#state" class="headerlink" title="state"></a>state</h4><p><img src="/../images/detail-of-raft/image-20220103150743291.png" srcset="/img/loading.gif" lazyload alt="image-20220103150743291"></p>
 <p>这里的状态是所有在集群里面的<code>server</code>都要有的</p>
 <ul>
@@ -288,7 +288,7 @@
 <li><p>matchIndex[ ]：<code>matchIndex[i]</code>表示，已经复制到<code>follower(i)</code>的日志，<strong>初始值是0，单调递增</strong></p>
 </li>
 </ul>
-<h4 id="AppendEntried-RPC"><a href="#AppendEntried-RPC" class="headerlink" title="AppendEntried RPC"></a>AppendEntried RPC</h4><p>&#8195;&#8195;这是一个RPC接口，被<code>master</code>调用，用来向<code>follower</code>进行日志的复制，还有进行<code>heart beat</code>。</p>
+<h4 id="AppendEntried-RPC"><a href="#AppendEntried-RPC" class="headerlink" title="AppendEntried RPC"></a>AppendEntried RPC</h4><p>&amp;#8195;&amp;#8195;这是一个RPC接口，被<code>master</code>调用，用来向<code>follower</code>进行日志的复制，还有进行<code>heart beat</code>。</p>
 <p><img src="/../images/detail-of-raft/image-20220103154050554.png" srcset="/img/loading.gif" lazyload alt="image-20220103154050554"></p>
 <p>这里是该函数的入参</p>
 <ul>
@@ -310,7 +310,7 @@
 <p>（3）如果 追加日志时发生了冲突了，通常情况是同一个Index但是Term不一样，代表其中必然有一个是<code>old leader</code>产生的。因此，要删除<code>old leader</code>产生的还有该日志后面的日志</p>
 <p>（4）<code>follower</code>追加没有缓存的记录，只有prevLog有包含</p>
 <p>（5）这里没想明白为啥要做这个 leader和follower commitIndex的判断，到时候再看看</p>
-<h4 id="RequestVote-RPC"><a href="#RequestVote-RPC" class="headerlink" title="RequestVote RPC"></a>RequestVote RPC</h4><p>&#8195;&#8195;这是一个<code>Candidate</code>调用的接口，用来收集选票来达成leader的选举</p>
+<h4 id="RequestVote-RPC"><a href="#RequestVote-RPC" class="headerlink" title="RequestVote RPC"></a>RequestVote RPC</h4><p>&amp;#8195;&amp;#8195;这是一个<code>Candidate</code>调用的接口，用来收集选票来达成leader的选举</p>
 <p><img src="/../images/detail-of-raft/image-20220103162625445.png" srcset="/img/loading.gif" lazyload alt="image-20220103162625445"></p>
 <p>接口函数的入参：</p>
 <ul>
@@ -345,15 +345,15 @@
 <p>（3）<strong>日志比较规则</strong>：如果两条日志它们的<code>term和index</code>都是一样的话，那么它们就是同一条日志</p>
 <p>（4）<strong>日志完整性</strong>：如果<code>leader</code>中的某条日志已经提交到了某个<code>follower</code>上，那么该条日志前面的所有日志都已经被提交到了<code>follower</code>上，不会出现日志空洞，缺失日志的情况（除非是磁盘问题）</p>
 <p>（5）<strong>状态机的安全</strong>：先不解释，后面会细说</p>
-<h3 id="Raft-Basic"><a href="#Raft-Basic" class="headerlink" title="Raft Basic"></a>Raft Basic</h3><h4 id="奇数节点"><a href="#奇数节点" class="headerlink" title="奇数节点"></a>奇数节点</h4><p>&#8195;&#8195;在一个<code>raft集群</code>中，有一个很重要的原则就是，<strong>集群里面的节点个数必须是基数的，通常情况采用的是3 / 5。</strong> 因为只有奇数才能达成<code>majority</code>，偶数就没有这种效果，因为可能出现五五开的场景。</p>
-<p>&#8195;&#8195;在通常情况下，当一个决策（日志的提交，选举leader），只要该决策被大部分的节点承认，那么就可以把结果返回给外界。采用了这种<code>majority</code>的机制，有以下的好处：</p>
+<h3 id="Raft-Basic"><a href="#Raft-Basic" class="headerlink" title="Raft Basic"></a>Raft Basic</h3><h4 id="奇数节点"><a href="#奇数节点" class="headerlink" title="奇数节点"></a>奇数节点</h4><p>&amp;#8195;&amp;#8195;在一个<code>raft集群</code>中，有一个很重要的原则就是，<strong>集群里面的节点个数必须是基数的，通常情况采用的是3 &#x2F; 5。</strong> 因为只有奇数才能达成<code>majority</code>，偶数就没有这种效果，因为可能出现五五开的场景。</p>
+<p>&amp;#8195;&amp;#8195;在通常情况下，当一个决策（日志的提交，选举leader），只要该决策被大部分的节点承认，那么就可以把结果返回给外界。采用了这种<code>majority</code>的机制，有以下的好处：</p>
 <ul>
 <li>首先，从性能的角度来看，这种<code>majority</code>显然要不等待所有节点同步要高</li>
 <li>其次，因为有<code>majority</code>，这样能够保证在相邻的两次决策，必然存在一个节点都<code>commit</code>了两次决策。</li>
 </ul>
 <p><img src="/../images/detail-of-raft/image-20220108151256533.png" srcset="/img/loading.gif" lazyload alt="决策继承"></p>
-<h4 id="节点的三种状态"><a href="#节点的三种状态" class="headerlink" title="节点的三种状态"></a>节点的三种状态</h4><p>&#8195;&#8195;集群的所有节点只处于以下三种状态之一：<code>Follower</code>,<code>Candidate</code>,<code>Leader</code>。并且正常的情况下，只会有一个<code>Leader</code>，并且其他剩余的节点是<code>Follower</code>。</p>
-<p>&#8195;&#8195;在这之中，<code>Leader</code>负责处理所有的客户端请求；<code>Follower</code>只会被动地执行<code>Leader 或 Candidate</code>的rpc请求，并不会自己主动地去做一些其他的事情；<code>Candidate</code>，当某个<code>Follower</code>觉得集群可能出现问题的时候，就会转变进入该状态，发起一次选举，保证系统的正常运转。</p>
+<h4 id="节点的三种状态"><a href="#节点的三种状态" class="headerlink" title="节点的三种状态"></a>节点的三种状态</h4><p>&amp;#8195;&amp;#8195;集群的所有节点只处于以下三种状态之一：<code>Follower</code>,<code>Candidate</code>,<code>Leader</code>。并且正常的情况下，只会有一个<code>Leader</code>，并且其他剩余的节点是<code>Follower</code>。</p>
+<p>&amp;#8195;&amp;#8195;在这之中，<code>Leader</code>负责处理所有的客户端请求；<code>Follower</code>只会被动地执行<code>Leader 或 Candidate</code>的rpc请求，并不会自己主动地去做一些其他的事情；<code>Candidate</code>，当某个<code>Follower</code>觉得集群可能出现问题的时候，就会转变进入该状态，发起一次选举，保证系统的正常运转。</p>
 <p>​    下面是，集群的状态机转换，有几个特别的点我们需要注意：</p>
 <p><img src="/../images/detail-of-raft/image-20220108151102526.png" srcset="/img/loading.gif" lazyload alt="状态转换"></p>
 <ul>
@@ -362,12 +362,12 @@
 <li><code>Candidate</code>在发现一个大于自己的<code>Term</code>或者是一条声明(某个节点赢得了选举，成为了<code>Leader</code>)，则进入<code>Follower</code>状态。</li>
 <li><code>Leader</code>只有在收到一个更大的<code>Term</code>才会转变状态，变为<code>Follower</code>。</li>
 </ul>
-<h4 id="Term"><a href="#Term" class="headerlink" title="Term"></a>Term</h4><p>&#8195;&#8195;<code>term</code>是一个<strong>逻辑上单调递增的序列</strong>，并且该序列是与<code>Leader election</code>捆绑在一起的，是用来标记着该<code>Leader</code>是由第几次选举产生的。</p>
-<p>&#8195;&#8195;每一次<code>Leader election</code>都会产生一个<code>term</code>，在一次选举中可能会有一个或多个候选人，若是一次选举中某个节点成为了<code>Leader</code>，那么就会用该次选举的<code>term</code>作为<code>ConcurrentTerm</code>，去发送<code>heartbeat</code>让剩余的节点重新成为<code>Follower</code>。</p>
-<p>&#8195;&#8195;但是，一次选举中可能会出现多个候选人，很可能会出现票数被多个候选者平均掉了，因此会出现<strong>没有任何一个节点能够获得大部分的票数。</strong>那么这种情况，要怎么进行处理呢？继续用该<code>Term</code>发起一次选举吗？</p>
-<p>&#8195;&#8195;在<code>Raft</code>中，<strong>允许某次选举中没有选出<code>Leader</code>。</strong>当一次选举因为票数分散导致选举不出一个<code>Leader</code>，它会把<code>term + 1</code>然后重新发起一次选举。在论文中，作者并没有说明为什么要这样做，但是我猜测<code>Raft</code>的设计者是这样考虑的，如果一次再发起一次选举，仍就是使用上一次选举的<code>term</code>的话，那么就无法再次收获票数了。因为<code>Follower</code>已经记录了在该<code>Term</code>的选举中投过票了。</p>
+<h4 id="Term"><a href="#Term" class="headerlink" title="Term"></a>Term</h4><p>&amp;#8195;&amp;#8195;<code>term</code>是一个<strong>逻辑上单调递增的序列</strong>，并且该序列是与<code>Leader election</code>捆绑在一起的，是用来标记着该<code>Leader</code>是由第几次选举产生的。</p>
+<p>&amp;#8195;&amp;#8195;每一次<code>Leader election</code>都会产生一个<code>term</code>，在一次选举中可能会有一个或多个候选人，若是一次选举中某个节点成为了<code>Leader</code>，那么就会用该次选举的<code>term</code>作为<code>ConcurrentTerm</code>，去发送<code>heartbeat</code>让剩余的节点重新成为<code>Follower</code>。</p>
+<p>&amp;#8195;&amp;#8195;但是，一次选举中可能会出现多个候选人，很可能会出现票数被多个候选者平均掉了，因此会出现<strong>没有任何一个节点能够获得大部分的票数。</strong>那么这种情况，要怎么进行处理呢？继续用该<code>Term</code>发起一次选举吗？</p>
+<p>&amp;#8195;&amp;#8195;在<code>Raft</code>中，<strong>允许某次选举中没有选出<code>Leader</code>。</strong>当一次选举因为票数分散导致选举不出一个<code>Leader</code>，它会把<code>term + 1</code>然后重新发起一次选举。在论文中，作者并没有说明为什么要这样做，但是我猜测<code>Raft</code>的设计者是这样考虑的，如果一次再发起一次选举，仍就是使用上一次选举的<code>term</code>的话，那么就无法再次收获票数了。因为<code>Follower</code>已经记录了在该<code>Term</code>的选举中投过票了。</p>
 <p><img src="/../images/detail-of-raft/image-20220108155012682.png" srcset="/img/loading.gif" lazyload alt="term divdied"></p>
-<p>&#8195;&#8195;由于篇幅问题，这篇文章就先介绍这些内容。关于<code>Leader election</code>和<code>log replicate</code>的内容放在下一篇文章</p>
+<p>&amp;#8195;&amp;#8195;由于篇幅问题，这篇文章就先介绍这些内容。关于<code>Leader election</code>和<code>log replicate</code>的内容放在下一篇文章</p>
 
             </div>
             <hr>

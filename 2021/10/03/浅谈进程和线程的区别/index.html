@@ -16,12 +16,12 @@
   <meta name="author" content="albertHuang">
   <meta name="keywords" content="">
   
-    <meta name="description" content="前言​    一般来说，很多人都是认为进程跟线程的区别是这样的。进程是资源分配的基本单位，线程是CPU调度的基本单位。 ​    虽然，这个说法没什么错。可是实际上，在Linux &#x2F; Unix这样的操作系统中，进程和线程之间的区别并没有想像中那么大。他们都是用同一种结构体进行描述的，并且创建进程和线程所使用的函数或者说创建进程线程的过程非常类似。 ​    所以说，我们其实可以认为，进程和线程他们">
+    <meta name="description" content="前言​    一般来说，很多人都是认为进程跟线程的区别是这样的。进程是资源分配的基本单位，线程是CPU调度的基本单位。 ​    虽然，这个说法没什么错。可是实际上，在Linux &#x2F; Unix这样的操作系统中，进程和线程之间的区别并没有想像中那么大。他们都是用同一种结构体进行描述的，并且创建进程和线程所使用的函数或者说创建进程线程的过程非常类似。 ​    所以说，我们其实可以认为，进程">
 <meta property="og:type" content="article">
 <meta property="og:title" content="进程和线程的区别">
 <meta property="og:url" content="http://example.com/2021/10/03/%E6%B5%85%E8%B0%88%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/index.html">
 <meta property="og:site_name" content="cb&#39;s blog">
-<meta property="og:description" content="前言​    一般来说，很多人都是认为进程跟线程的区别是这样的。进程是资源分配的基本单位，线程是CPU调度的基本单位。 ​    虽然，这个说法没什么错。可是实际上，在Linux &#x2F; Unix这样的操作系统中，进程和线程之间的区别并没有想像中那么大。他们都是用同一种结构体进行描述的，并且创建进程和线程所使用的函数或者说创建进程线程的过程非常类似。 ​    所以说，我们其实可以认为，进程和线程他们">
+<meta property="og:description" content="前言​    一般来说，很多人都是认为进程跟线程的区别是这样的。进程是资源分配的基本单位，线程是CPU调度的基本单位。 ​    虽然，这个说法没什么错。可是实际上，在Linux &#x2F; Unix这样的操作系统中，进程和线程之间的区别并没有想像中那么大。他们都是用同一种结构体进行描述的，并且创建进程和线程所使用的函数或者说创建进程线程的过程非常类似。 ​    所以说，我们其实可以认为，进程">
 <meta property="og:locale" content="zh_CN">
 <meta property="og:image" content="http://example.com/images/%E6%B5%85%E8%B0%88%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/1633192286077.png">
 <meta property="og:image" content="http://example.com/images/%E6%B5%85%E8%B0%88%E8%BF%9B%E7%A8%8B%E5%92%8C%E7%BA%BF%E7%A8%8B%E7%9A%84%E5%8C%BA%E5%88%AB/1633193036539.png">
@@ -247,7 +247,7 @@
             
             <div class="markdown-body">
               <h3 id="前言"><a href="#前言" class="headerlink" title="前言"></a>前言</h3><p>​    一般来说，很多人都是认为进程跟线程的区别是这样的。进程是资源分配的基本单位，线程是CPU调度的基本单位。</p>
-<p>​    虽然，这个说法没什么错。可是实际上，在Linux / Unix这样的操作系统中，进程和线程之间的区别并没有想像中那么大。<strong>他们都是用同一种结构体进行描述的，并且创建进程和线程所使用的函数或者说创建进程线程的过程非常类似。</strong></p>
+<p>​    虽然，这个说法没什么错。可是实际上，在Linux &#x2F; Unix这样的操作系统中，进程和线程之间的区别并没有想像中那么大。<strong>他们都是用同一种结构体进行描述的，并且创建进程和线程所使用的函数或者说创建进程线程的过程非常类似。</strong></p>
 <p>​    所以说，我们其实可以认为，进程和线程他们是同一种东西。</p>
  <span id="more"></span> 
 
@@ -278,7 +278,7 @@
 <li>复制完成后，把task_struct内许多成员设为初始值(主要是统计量)</li>
 <li>然后更新一些mode，最主要的有两个<strong>内核态权限位 和 执行位</strong></li>
 <li>分配pid</li>
-<li>然后根据传递的参数决定，拷贝/共享哪些资源</li>
+<li>然后根据传递的参数决定，拷贝&#x2F;共享哪些资源</li>
 <li>最后返回一个子进程的指针，并且马上exec( )</li>
 </ul>
 <h4 id="进程的终结"><a href="#进程的终结" class="headerlink" title="进程的终结"></a>进程的终结</h4><p>​    进程终结其实在Linux里面也具体分为两个步骤。(1)调用exit( ) 系统调用，<strong>不管是主动调用，还是被动调用。</strong>主动释放进程所拥有的资源。 (2)调用完exit之后，进程实际上已经被销毁，只是进程描述符还没清空，因此需要委托父进程进行销毁。</p>
